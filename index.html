@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Thi Toán ASMO Lớp 5 - Tương Tác Trực Tuyến</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone CDN -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Lexend', sans-serif; background-color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // DỮ LIỆU ĐỀ BÀI + ĐÁP ÁN + LỜI GIẢI CHI TIẾT + KIẾN THỨC TRỌNG TÂM (Trích xuất từ PDF ASMO Grade 5)
+        const QUESTIONS_DATA = [
+            {
+                id: 1,
+                questionEn: "Refer to the figure below, what is the total number of triangles can be formed?",
+                questionVi: "Tham khảo hình bên dưới, tổng số hình tam giác có thể được tạo thành là bao nhiêu?",
+                answer: "16",
+                explanation: "Đáp án chuẩn: 16 hình tam giác.",
+                solution: "1. Đếm các tam giác đơn (nhỏ): Có 8 tam giác nhỏ bên trong.\n2. Đếm các tam giác ghép từ 2 tam giác nhỏ: Có 4 tam giác.\n3. Đếm các tam giác ghép từ 4 tam giác nhỏ: Có 4 tam giác.\nTổng cộng: 8 + 4 + 4 = 16 hình tam giác.",
+                keyConcept: "📌 Phương pháp đếm hình học: Đếm theo cấp độ từ hình đơn đến hình ghép (ghép 2, ghép 4...) để tránh bỏ sót hoặc trùng lặp."
+            },
+            {
+                id: 2,
+                questionEn: "A bridge is being built over a 240 m wide river. One quarter of the bridge continues on land on the left bank, another quarter continues on land on the right bank. How long is the bridge?",
+                questionVi: "Một cây cầu bắc qua con sông rộng 240m. 1/4 cầu nằm trên bờ trái, 1/4 cầu nằm trên bờ phải. Hỏi cây cầu dài bao nhiêu mét?",
+                answer: "480",
+                explanation: "Đáp án chuẩn: 480 m",
+                solution: "1. Phần cầu nằm trên đất liền ở 2 bờ chiếm: 1/4 + 1/4 = 1/2 (chiều dài cây cầu).\n2. Phần cầu bắc qua sông tương ứng với: 1 - 1/2 = 1/2 (chiều dài cây cầu).\n3. Do phần bắc qua sông dài 240m nên tổng chiều dài cây cầu là: 240 : (1/2) = 480 (m).",
+                keyConcept: "📌 Bài toán Tìm một số khi biết giá trị phân số của nó: Giá trị = Giá trị phần / Phân số tương ứng."
+            },
+            {
+                id: 3,
+                questionEn: "Evaluate the sum: 1/(1x2) + 1/(2x3) + ... + 1/(2024x2025)",
+                questionVi: "Tính tổng dãy phân số: 1/(1x2) + 1/(2x3) + ... + 1/(2024x2025)",
+                answer: "2024/2025",
+                explanation: "Đáp án chuẩn: 2024/2025",
+                solution: "Sử dụng công thức tách phân số: 1/(n x (n+1)) = 1/n - 1/(n+1)\nTổng = (1 - 1/2) + (1/2 - 1/3) + ... + (1/2024 - 1/2025)\n= 1 - 1/2025 = 2024/2025.",
+                keyConcept: "📌 Dãy phân số quy luật (Telescoping Series): Tách 1/(a x b) = 1/a - 1/b khi b - a bằng tử số."
+            },
+            {
+                id: 4,
+                questionEn: "It is given that A:B = 2:3 and B:C = 6:5. The average of A, B and C is 45. Find B.",
+                questionVi: "Cho A:B = 2:3 và B:C = 6:5. Trung bình cộng của A, B, C là 45. Tìm B.",
+                answer: "54",
+                explanation: "Đáp án chuẩn: B = 54",
+                solution: "1. Tổng A + B + C = 45 x 3 = 135.\n2. Quy đổi tỉ lệ: A:B = 2:3 = 4:6. Do đó A:B:C = 4:6:5.\n3. Tổng số phần bằng nhau: 4 + 6 + 5 = 15 phần.\n4. Giá trị của B (6 phần): (135 / 15) x 6 = 54.",
+                keyConcept: "📌 Bài toán Tỉ lệ liên tiếp & Tìm số khi biết Tổng và Tỉ số."
+            },
+            {
+                id: 5,
+                questionEn: "Find the largest 6-digit number in the form 458ABC that is divisible by 3, 4 and 5.",
+                questionVi: "Tìm số lớn nhất có 6 chữ số dạng 458ABC chia hết cho cả 3, 4 và 5.",
+                answer: "458940",
+                explanation: "Đáp án chuẩn: 458940",
+                solution: "1. Số chia hết cho 5 nên C có thể là 0 hoặc 5.\n2. Số chia hết cho 4 nên chữ số tận cùng C phải là số chẵn -> Chọn C = 0.\n3. Để chia hết cho 4, 2 chữ số cuối 'B0' phải chia hết cho 4 -> B có thể là 0, 2, 4, 6, 8. Để số lớn nhất, chọn B = 4, 6 hoặc 8.\n4. Số chia hết cho 3 nên tổng (4+5+8+A+B+0) = 17 + A + B chia hết cho 3.\n5. Để 458ABC lớn nhất, chọn A = 9. Khi đó 17 + 9 + B = 26 + B chia hết cho 3. Chọn B = 4.\nVậy số lớn nhất là 458940.",
+                keyConcept: "📌 Dấu hiệu chia hết: Cho 5 (tận cùng 0,5), Cho 4 (2 chữ số cuối chia hết cho 4), Cho 3 (tổng chữ số chia hết cho 3)."
+            }
+        ];
+
+        function App() {
+            const [userAnswers, setUserAnswers] = useState({});
+            const [showFeedback, setShowFeedback] = useState({});
+            const [score, setScore] = useState(null);
+
+            const handleInputChange = (id, val) => {
+                setUserAnswers({ ...userAnswers, [id]: val });
+            };
+
+            const checkSingleAnswer = (id) => {
+                setShowFeedback({ ...showFeedback, [id]: true });
+            };
+
+            const cleanStr = (str) => str ? str.toString().trim().toLowerCase().replace(/\s+/g, '') : '';
+
+            const handleCheckAll = () => {
+                let correctCount = 0;
+                const newFeedback = {};
+                QUESTIONS_DATA.forEach(q => {
+                    newFeedback[q.id] = true;
+                    if (cleanStr(userAnswers[q.id]) === cleanStr(q.answer)) {
+                        correctCount++;
+                    }
+                });
+                setShowFeedback(newFeedback);
+                setScore(correctCount);
+            };
+
+            const handleReset = () => {
+                setUserAnswers({});
+                setShowFeedback({});
+                setScore(null);
+            };
+
+            return (
+                <div className="min-h-screen pb-12">
+                    {/* Header */}
+                    <header className="bg-indigo-600 text-white py-6 px-4 shadow-md mb-8">
+                        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight">🧮 Luyện Thi Toán ASMO Lớp 5</h1>
+                                <p className="text-indigo-100 text-sm mt-1">Hệ thống bài tập tương tác - Lời giải chi tiết & Trọng tâm kiến thức</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={handleCheckAll} className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg transition shadow">
+                                    Nộp Bài & Chấm Điểm
+                                </button>
+                                <button onClick={handleReset} className="bg-indigo-700 hover:bg-indigo-800 text-white font-medium px-3 py-2 rounded-lg transition">
+                                    Làm Lại
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-4xl mx-auto px-4">
+                        {/* Score Banner */}
+                        {score !== null && (
+                            <div className="bg-white border-2 border-indigo-500 rounded-xl p-6 mb-8 text-center shadow-lg animate-bounce">
+                                <h2 className="text-xl font-bold text-gray-800">Kết Quả Bài Làm</h2>
+                                <p className="text-3xl font-extrabold text-indigo-600 my-2">{score} / {QUESTIONS_DATA.length} Câu Đúng</p>
+                                <p className="text-gray-600 text-sm">
+                                    {score === QUESTIONS_DATA.length ? "🎉 Xuất sắc! Con đã nắm vững toàn bộ kiến thức!" : "💪 Hãy xem lại các lời giải chi tiết bên dưới để hoàn thiện nhé!"}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Question List */}
+                        <div className="space-y-6">
+                            {QUESTIONS_DATA.map((q, index) => {
+                                const isSubmitted = showFeedback[q.id];
+                                const isCorrect = cleanStr(userAnswers[q.id]) === cleanStr(q.answer);
+
+                                return (
+                                    <div key={q.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                        {/* Card Header */}
+                                        <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
+                                            <span className="font-bold text-indigo-600">Câu {index + 1}</span>
+                                            <span className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">ASMO Grade 5</span>
+                                        </div>
+
+                                        {/* Question Content */}
+                                        <div className="p-6">
+                                            <p className="text-slate-800 font-medium mb-2">{q.questionVi}</p>
+                                            <p className="text-slate-500 text-sm italic mb-4">{q.questionEn}</p>
+
+                                            {/* Input Area */}
+                                            <div className="flex flex-wrap gap-3 items-center mb-4">
+                                                <input 
+                                                    type="text" 
+                                                    value={userAnswers[q.id] || ''} 
+                                                    onChange={(e) => handleInputChange(q.id, e.target.value)}
+                                                    placeholder="Nhập đáp án của bạn..." 
+                                                    className={`border rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 ${
+                                                        isSubmitted 
+                                                            ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold' : 'border-rose-500 bg-rose-50 text-rose-800') 
+                                                            : 'border-slate-300 focus:ring-indigo-400'
+                                                    }`}
+                                                />
+                                                <button 
+                                                    onClick={() => checkSingleAnswer(q.id)}
+                                                    className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm transition"
+                                                >
+                                                    Kiểm Tra
+                                                </button>
+                                            </div>
+
+                                            {/* FEEDBACK & SOLUTION BOX */}
+                                            {isSubmitted && (
+                                                <div className={`mt-4 rounded-lg p-5 border ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className={`text-lg font-bold ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                            {isCorrect ? "✅ Tốt lắm! Đáp án chính xác." : "❌ Chưa chính xác!"}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Đáp án & Lời giải */}
+                                                    <div className="space-y-3 text-sm text-slate-700">
+                                                        <div className="font-semibold text-slate-900">
+                                                            🔑 {q.explanation}
+                                                        </div>
+                                                        <div className="bg-white/80 p-3 rounded border border-slate-200 whitespace-pre-line">
+                                                            <strong className="text-indigo-600 block mb-1">📝 Lời giải chi tiết:</strong>
+                                                            {q.solution}
+                                                        </div>
+                                                        <div className="bg-indigo-50/80 p-3 rounded border border-indigo-100 text-indigo-900">
+                                                            {q.keyConcept}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="text-center text-slate-400 text-xs py-8">
+                        © 2026 Interactive Math Learning App. Powered by React & GitHub Pages.
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
